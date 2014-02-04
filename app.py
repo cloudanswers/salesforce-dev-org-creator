@@ -2,19 +2,22 @@ import random
 import sys
 import time
 from selenium import webdriver
-from flask import Flask, jsonify
+from flask import Flask, jsonify, redirect
 app = Flask(__name__)
 
 
 __email_chars = 'abcdefghijklmnopqrstuvwxyz1234567890'
 
 
-def __random_email():
+def __random():
     res = ''
     while len(res) < 10:
         res += random.choice(__email_chars)
-    return 'dev-%s@ccp0.com' % res
+    return res
 
+
+def __email(id):
+    return 'salesforce-dev-org+%s@bulkify.com' % id
 
 def __webdriver():
     if '--firefox' in sys.argv:
@@ -26,9 +29,10 @@ def __webdriver():
     driver.set_window_size(1028, 768)
 
 
-@app.route("/")
+@app.route("/")  # TODO set to post
 def hello():
-    email = __random_email()
+    rand = __random()
+    email = __email(rand)
     driver = __webdriver()
 
     driver.get('https://events.developerforce.com/signup')
@@ -53,16 +57,26 @@ def hello():
             o.click()
             break
     driver.find_element_by_id('eula').click()
-    # driver.find_element_by_id('submit_btn').click()
+    driver.find_element_by_id('submit_btn').click()
 
     # TODO wait for email and set password
     
-
     driver.close()
 
-    return jsonify({
-        'email': email
-    })
+    return jsonify({'email': email})
+
+
+@app.route('/callback')
+def callback():
+    return jsonify({'status': 'ok'})
+
+
+@app.route('/account/<rand>')
+def finish(rand):
+    pass
+
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)
