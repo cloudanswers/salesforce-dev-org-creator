@@ -84,9 +84,9 @@ def hello():
 @app.route('/callback', methods=['POST'])
 def callback():
     print request.headers
-    print request.get_data()
+    print request.form
     if request.data:
-        db['email'].save(json.loads(request.get_data()))
+        db['email'].save(json.loads(request.form))
     return jsonify({'status': 'ok'})
 
 
