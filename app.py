@@ -34,8 +34,8 @@ def __webdriver():
     driver.set_window_size(1028, 768)
 
 
-def signup(driver, url, params):
-    driver.get('https://events.developerforce.com/signup')
+def signup(driver, url, vals):
+    driver.get(url)
     time.sleep(1)
     for k, v in vals.items():
         f = driver.find_element_by_id(k)
