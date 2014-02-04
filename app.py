@@ -173,7 +173,6 @@ def finish(id):
                 except Exception as e:
                     result['details']['activation'] = 'error: %s' % repr(e)
                     db['account'].save(result['details'])
-                    break
                 result['details']['activation_status'] = 'complete'
                 db['account'].save(result['details'])
 
