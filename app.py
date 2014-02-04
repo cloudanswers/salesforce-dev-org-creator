@@ -4,6 +4,7 @@ import time
 from selenium import webdriver
 from flask import Flask, jsonify, redirect
 app = Flask(__name__)
+app.debug = True
 
 
 __email_chars = 'abcdefghijklmnopqrstuvwxyz1234567890'
