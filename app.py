@@ -1,6 +1,7 @@
 import json
 import os
 import random
+import re
 import sys
 import time
 import pymongo
@@ -92,6 +93,27 @@ def callback():
     return jsonify({'status': 'ok'})
 
 
+def __activate(msg, password):
+    search_result = re.search(r'Click (?P<url>.+) to log in now.', msg['text'])
+    if search_result:
+        url = search_result.group('url')
+        driver = __webdriver()
+        driver.get(search_result.group('url'))
+
+        # TODO assert we're on the password reset page
+
+        driver.find_element_by_id('p5').send_keys(password)
+        driver.find_element_by_id('p6').send_keys(password)
+        for o in driver.find_element_by_id('p2').find_elements_by_tag_name('option'):
+            # pet name
+            if o.get_attribute('value') == '3':
+                o.click()
+                break
+        driver.find_element_by_id('p6').send_keys(password)
+        driver.find_element_by_name('save').click()
+        # driver.quit()
+
+
 @app.route('/account/<id>')
 def finish(id):
     result = {
@@ -99,7 +121,27 @@ def finish(id):
         'status': 'awaiting_activation_email',
         'details': db['account'].find_one({'id': id})
     }
-    # can't url json mongo id
+
+    result['emails'] = []
+    for e in db['email'].find({'msg.text': {'$regex': '.*%s.*' % result['details']['username']}}):
+        # neutralize ObjectID serialization problem
+        del e['_id']
+        result['emails'].append(e)
+
+        if 'Salesforce.com login confirmation' == e['msg']['subject']:
+            if not result['details'].get('activation_status') or True:
+                result['details']['activation_status'] = 'in_progress'
+                db['account'].save(result['details'])
+                try:
+                    __activate(e['msg'], id)
+                except Exception as e:
+                    result['details']['activation'] = 'error: %s' % repr(e)
+                    db['account'].save(result['details'])
+                    break
+                result['details']['activation_status'] = 'complete'
+                db['account'].save(result['details'])
+
+    # neutralize mongo ObjectID json serialization error
     del result['details']['_id']
 
     return jsonify(result)
