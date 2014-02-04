@@ -91,6 +91,8 @@ def finish(id):
         'status': 'awaiting_activation_email',
         'details': db['account'].find_one({'id': id})
     }
+    # can't url json mongo id
+    del result['details']['_id']
 
     return jsonify(result)
 
