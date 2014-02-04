@@ -77,6 +77,10 @@ def hello():
     vals.update({'request_time': request_time})
     db['account'].save(vals)
 
+    # TODO save cookie jar
+    # TODO be able to resume a session at https://events.developerforce.com/en/auth/
+    #      where we can re-send the activation email if we need
+    
     driver.quit()
 
     return redirect('/account/%s' % rand)
