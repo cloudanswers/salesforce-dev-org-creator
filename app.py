@@ -126,6 +126,9 @@ def __activate(msg, password):
 
         __expect_text_on_page(driver, 'Force.com Home')
 
+        # expand navs to avoid ElementNotVisibleException
+        driver.find_element_by_id('setupNavExpandAll').click()
+
         driver.find_element_by_id('ManageUsers_font').click()
 
         __expect_text_on_page(driver, 'System Administrator')
