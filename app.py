@@ -23,8 +23,10 @@ def __email(id):
 def __webdriver():
     if '--firefox' in sys.argv:
         return webdriver.Firefox()
-    else:
+    elif '--macphantom' in sys.argv:
         return webdriver.PhantomJS('phantomjs/bin/phantomjs')
+    else:
+        return webdriver.PhantomJS('phantomjs-1.9.7-linux-x86_64/bin/phantomjs')
 
     # helps avoid element visibility errors by setting a realistic size
     driver.set_window_size(1028, 768)
