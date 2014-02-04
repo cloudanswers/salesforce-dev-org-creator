@@ -1,11 +1,15 @@
+import os
 import random
 import sys
 import time
+import pymongo
+import requests
 from selenium import webdriver
-from flask import Flask, jsonify, redirect
+from flask import Flask, jsonify, redirect, request
 app = Flask(__name__)
 app.debug = True
 
+db = pymongo.Connection(os.getenv('MONGOLAB_URI')).get_default_database()
 
 __email_chars = 'abcdefghijklmnopqrstuvwxyz1234567890'
 
@@ -16,9 +20,6 @@ def __random():
         res += random.choice(__email_chars)
     return res
 
-
-def __email(id):
-    return 'salesforce-dev-org+%s@bulkify.com' % id
 
 def __webdriver():
     if '--firefox' in sys.argv:
@@ -32,23 +33,9 @@ def __webdriver():
     driver.set_window_size(1028, 768)
 
 
-@app.route("/")  # TODO set to post
-def hello():
-    rand = __random()
-    email = __email(rand)
-    driver = __webdriver()
-
+def signup(driver, url, params):
     driver.get('https://events.developerforce.com/signup')
-    time.sleep(2)
-
-    vals = {
-        'email': email,
-        'username': email,
-        'first_name': 'developer',
-        'last_name': 'developer',
-        'company': 'developer',
-        'postal_code': '02144',
-    }
+    time.sleep(1)
     for k, v in vals.items():
         f = driver.find_element_by_id(k)
         if f and f.is_displayed() and f.is_enabled():
@@ -62,24 +49,49 @@ def hello():
     driver.find_element_by_id('eula').click()
     driver.find_element_by_id('submit_btn').click()
 
-    # TODO wait for email and set password
-    
-    driver.close()
+    # TODO assert that we see the thanks page with status code 200
 
-    return jsonify({'email': email})
+
+@app.route("/")  # TODO set to post
+def hello():
+    rand = __random()
+    driver = __webdriver()
+    vals = {
+        'email': 'salesforce-dev-org-%s@bulkify.com' % rand,
+        'username': 'salesforce-dev-org-%s@bulkify.com' % rand,
+        'first_name': 'developer',
+        'last_name': 'developer',
+        'company': 'developer',
+        'postal_code': '02144',
+    }
+    try:
+        signup(driver, 'https://events.developerforce.com/signup', vals)
+    except Exception as e:
+        vals.update({'exception': repr(e)})
+
+    vals.update({'headers': dict(request.headers.items())})
+    vals.update({'id': rand})
+    db['account'].save(vals)
+
+    driver.quit()
+
+    return redirect('/account/%s' % rand)
 
 
 @app.route('/callback')
 def callback():
+    db['email'].save(request.json)
     return jsonify({'status': 'ok'})
 
 
-@app.route('/account/<rand>')
-def finish(rand):
-    pass
+@app.route('/account/<id>')
+def finish(id):
+    result = {'id': id}
+
+    return jsonify(result)
 
 
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0')
