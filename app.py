@@ -93,6 +93,14 @@ def callback():
     return jsonify({'status': 'ok'})
 
 
+def __expect_text_on_page(driver, text):
+    if text not in driver.page_source:
+        e = Exception('not expected page ("' + text + '" not found): %s'
+                      % driver.page_source)
+        driver.quit()
+        raise e
+
+
 def __activate(msg, password):
     search_result = re.search(r'Click (?P<url>.+) to log in now.', msg['text'])
     if search_result:
@@ -106,17 +114,41 @@ def __activate(msg, password):
 
         # TODO assert we're on the password reset page
 
-        driver.find_element_by_id('p5').send_keys(password)
-        driver.find_element_by_id('p6').send_keys(password)
+        driver.find_element_by_id('p5').send_keys(password[:-1])
+        driver.find_element_by_id('p6').send_keys(password[:-1])
         for o in driver.find_element_by_id('p2').find_elements_by_tag_name('option'):
             # pet name
             if o.get_attribute('value') == '3':
                 o.click()
                 break
-        driver.find_element_by_id('p6').send_keys(password)
+        driver.find_element_by_id('p3').send_keys('none')
         driver.find_element_by_name('save').click()
-        # driver.quit()
 
+        __expect_text_on_page(driver, 'Force.com Home')
+
+        driver.find_element_by_id('ManageUsers_font').click()
+
+        __expect_text_on_page(driver, 'System Administrator')
+
+        for e in driver.find_elements_by_tag_name('a'):
+            if e.get_attribute('href') and e.get_attribute('href').startswith('/00e'):
+                e.click()
+                break
+
+        __expect_text_on_page(driver, 'Login IP Ranges')
+
+        driver.find_element_by_name('newIP').click()
+
+        __expect_text_on_page(driver, 'Please specify IP range')
+
+        driver.find_element_by_id('IpStartAddress').send_keys('0.0.0.0')
+        driver.find_element_by_id('IpEndAddress').send_keys('255.255.255.255')
+        driver.find_element_by_name('save').click()
+
+        # should be returned to profile
+        __expect_text_on_page(driver, 'Profile Detail')
+
+        # driver.quit()
 
 @app.route('/account/<id>')
 def finish(id):
@@ -127,7 +159,7 @@ def finish(id):
     }
 
     result['emails'] = []
-    for e in db['email'].find({'msg.text': {'$regex': '.*%s.*' % result['details']['username']}}):
+    for e in db['email'].find({'msg.text': {'$regex': '.*%s.*' % id}}):
         # neutralize ObjectID serialization problem
         del e['_id']
         result['emails'].append(e)
