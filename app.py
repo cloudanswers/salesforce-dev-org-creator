@@ -142,10 +142,7 @@ def __activate(msg, password):
 
         __expect_text_on_page(driver, 'System Administrator')
 
-        for e in driver.find_elements_by_tag_name('a'):
-            if e.get_attribute('href') and e.get_attribute('href').startswith('/00e'):
-                e.click()
-                break
+        driver.find_element_by_link_text('System Administrator').click()
 
         __expect_text_on_page(driver, 'Login IP Ranges')
 
