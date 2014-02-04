@@ -99,10 +99,15 @@ def callback():
 
 def __expect_text_on_page(driver, text):
     if text not in driver.page_source:
-        e = Exception('not expected page ("' + text + '" not found): %s'
-                      % driver.page_source)
-        driver.quit()
-        raise e
+
+        # salesforce page loads are slow
+        time.sleep(1)
+
+        if text not in driver.page_source:
+            e = Exception('not expected page ("' + text + '" not found): %s'
+                          % driver.page_source)
+            driver.quit()  # comment out during debug so you can see in firefox
+            raise e
 
 
 def __activate(msg, password):
