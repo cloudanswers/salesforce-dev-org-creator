@@ -54,11 +54,12 @@ def signup(driver, url, params):
 
 @app.route("/")  # TODO set to post
 def hello():
+    request_time = time.time()
     rand = __random()
     driver = __webdriver()
     vals = {
-        'email': 'salesforce-dev-org-%s@bulkify.com' % rand,
-        'username': 'salesforce-dev-org-%s@bulkify.com' % rand,
+        'email': 'salesforce-dev-org+%s@bulkify.com' % rand,
+        'username': 'salesforce-dev-org+%s@bulkify.com' % rand,
         'first_name': 'developer',
         'last_name': 'developer',
         'company': 'developer',
@@ -71,6 +72,7 @@ def hello():
 
     vals.update({'headers': dict(request.headers.items())})
     vals.update({'id': rand})
+    vals.update({'request_time': request_time})
     db['account'].save(vals)
 
     driver.quit()
