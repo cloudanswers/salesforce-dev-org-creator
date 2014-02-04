@@ -86,7 +86,11 @@ def callback():
 
 @app.route('/account/<id>')
 def finish(id):
-    result = {'id': id}
+    result = {
+        'id': id,
+        'status': 'awaiting_activation_email',
+        'details': db['account'].find_one({'id': id})
+    }
 
     return jsonify(result)
 
