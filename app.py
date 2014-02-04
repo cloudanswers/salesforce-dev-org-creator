@@ -24,7 +24,7 @@ def __webdriver():
     if '--firefox' in sys.argv:
         return webdriver.Firefox()
     else:
-        return webdriver.PhantomJS('/app/phantomjs/bin/phantomjs')
+        return webdriver.PhantomJS('phantomjs/bin/phantomjs')
 
     # helps avoid element visibility errors by setting a realistic size
     driver.set_window_size(1028, 768)
