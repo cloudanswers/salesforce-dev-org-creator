@@ -1,3 +1,4 @@
+import json
 import os
 import random
 import sys
@@ -82,7 +83,9 @@ def hello():
 
 @app.route('/callback', methods=['POST'])
 def callback():
-    db['email'].save(request.json)
+    print request.headers
+    print request.data
+    db['email'].save(json.loads(request.data))
     return jsonify({'status': 'ok'})
 
 
