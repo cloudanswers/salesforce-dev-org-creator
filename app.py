@@ -58,8 +58,8 @@ def hello():
     rand = __random()
     driver = __webdriver()
     vals = {
-        'email': 'salesforce-dev-org+%s@bulkify.com' % rand,
-        'username': 'salesforce-dev-org+%s@bulkify.com' % rand,
+        'email': 'salesforce-dev-org@bulkify.com',
+        'username': '%s@bulkify.com' % rand,
         'first_name': 'developer',
         'last_name': 'developer',
         'company': 'developer',
