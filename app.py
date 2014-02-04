@@ -80,7 +80,7 @@ def hello():
     return redirect('/account/%s' % rand)
 
 
-@app.route('/callback')
+@app.route('/callback', methods=['POST'])
 def callback():
     db['email'].save(request.json)
     return jsonify({'status': 'ok'})
