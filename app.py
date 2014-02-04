@@ -83,10 +83,12 @@ def hello():
 
 @app.route('/callback', methods=['POST'])
 def callback():
-    print request.headers
-    print request.form
-    if request.data:
-        db['email'].save(json.loads(request.form))
+    # mandrill webhook format:
+    # http://help.mandrill.com/entries/22092308-What-is-the-format-of-inbound-email-webhooks-
+
+    if request.form.get('mandrill_events'):
+        for event in json.loads(request.form.get('mandrill_events')):
+            db['email'].save(event)
     return jsonify({'status': 'ok'})
 
 
