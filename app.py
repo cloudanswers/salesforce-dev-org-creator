@@ -100,6 +100,10 @@ def __activate(msg, password):
         driver = __webdriver()
         driver.get(search_result.group('url'))
 
+        if 'Your login attempt has failed' in driver.page_source:
+            driver.quit()
+            raise Exception('activation link already used')
+
         # TODO assert we're on the password reset page
 
         driver.find_element_by_id('p5').send_keys(password)
