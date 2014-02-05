@@ -123,8 +123,8 @@ def __activate(msg, password):
 
         # TODO assert we're on the password reset page
 
-        driver.find_element_by_id('p5').send_keys(password[:-1])
-        driver.find_element_by_id('p6').send_keys(password[:-1])
+        driver.find_element_by_id('p5').send_keys(password)
+        driver.find_element_by_id('p6').send_keys(password)
         for o in driver.find_element_by_id('p2').find_elements_by_tag_name('option'):
             # pet name
             if o.get_attribute('value') == '3':
@@ -177,8 +177,13 @@ def finish(id):
             if not result['details'].get('activation_status') or True:
                 result['details']['activation_status'] = 'in_progress'
                 db['account'].save(result['details'])
+
+                # can't contain password, so we drop the last char to be easy
+                password = id[:-1]
+                result['details']['password'] = password
+
                 try:
-                    __activate(e['msg'], id)
+                    __activate(e['msg'], password)
                 except Exception as e:
                     result['details']['activation'] = 'error: %s' % repr(e)
                     db['account'].save(result['details'])
