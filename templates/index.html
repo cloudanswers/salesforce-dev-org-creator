@@ -1,0 +1,22 @@
+<html>
+    <head></head>
+    <body>
+        <h1>
+            salesforce-dev-org creator
+        </h1>
+        <p>
+            salesforce.com dev orgs usually come with broken parts, activation emails
+            can take a long time to arrive or sometimes never do.  this utility is
+            provided to work around those and other issues by automating the signup
+            process so you can focus on building projects instead.
+        </p>
+        <h3>cookie based list of your orgs</h3>
+        <ul>
+            <li><form method="post" action="/account"><input type="submit" value="create new"></form></li>
+            {% for a in accounts %}
+                <li><a href="/account/{{a.id}}">{{a.username}}</a> {{a.activation_status or 'PENDING'}}</li>
+            {% endfor %}
+        </ul>
+    </body>
+</html>
+

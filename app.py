@@ -7,8 +7,9 @@ import time
 import pymongo
 import requests
 from selenium import webdriver
-from flask import Flask, jsonify, redirect, request
+from flask import Flask, jsonify, redirect, request, render_template, session
 app = Flask(__name__)
+app.secret_key = os.getenv('SECRET_KEY') or 'THIS IS MY SECRET DEFAULT KEY)(*1'
 app.debug = True
 
 db = pymongo.Connection(os.getenv('MONGOLAB_URI')).get_default_database()
@@ -16,9 +17,9 @@ db = pymongo.Connection(os.getenv('MONGOLAB_URI')).get_default_database()
 __email_chars = 'abcdefghijklmnopqrstuvwxyz1234567890'
 
 
-def __random():
+def __random(size=10):
     res = ''
-    while len(res) < 10:
+    while len(res) < size:
         res += random.choice(__email_chars)
     return res
 
@@ -54,8 +55,21 @@ def signup(driver, url, vals):
     # TODO assert that we see the thanks page with status code 200
 
 
-@app.route("/")  # TODO set to post
-def hello():
+def __session_id():
+    if not session.get('session_id'):
+        session['session_id'] = __random(50)
+    return session.get('session_id')
+
+
+@app.route('/')
+def index():
+    print __session_id()
+    accounts = db['account'].find({'session_id': __session_id()})
+    return render_template('index.html', accounts=accounts)
+
+
+@app.route("/account", methods=['POST'])
+def new_account():
     request_time = time.time()
     rand = __random()
     driver = __webdriver()
@@ -75,12 +89,13 @@ def hello():
     vals.update({'headers': dict(request.headers.items())})
     vals.update({'id': rand})
     vals.update({'request_time': request_time})
+    vals.update({'session_id': __session_id()})
     db['account'].save(vals)
 
     # TODO save cookie jar
     # TODO be able to resume a session at https://events.developerforce.com/en/auth/
     #      where we can re-send the activation email if we need
-    
+
     driver.quit()
 
     return redirect('/account/%s' % rand)
@@ -174,7 +189,7 @@ def finish(id):
         result['emails'].append(e)
 
         if 'Salesforce.com login confirmation' == e['msg']['subject']:
-            if not result['details'].get('activation_status') or True:
+            if result['details'].get('activation_status') != 'complete':
                 result['details']['activation_status'] = 'in_progress'
                 db['account'].save(result['details'])
 
