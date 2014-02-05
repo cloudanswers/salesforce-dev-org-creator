@@ -157,7 +157,7 @@ def __activate(msg, password):
         # should be returned to profile
         __expect_text_on_page(driver, 'Profile Detail')
 
-        # driver.quit()
+        driver.quit()
 
 @app.route('/account/<id>')
 def finish(id):
