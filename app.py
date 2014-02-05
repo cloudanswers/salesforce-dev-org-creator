@@ -65,7 +65,8 @@ def __session_id():
 def index():
     print __session_id()
     accounts = db['account'].find({'session_id': __session_id()})
-    return render_template('index.html', accounts=accounts)
+    total_accounts_created = db['account'].count()
+    return render_template('index.html', accounts=accounts, total_accounts_created=total_accounts_created)
 
 
 @app.route("/account", methods=['POST'])
